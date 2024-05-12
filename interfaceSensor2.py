@@ -85,7 +85,7 @@ async def main():
     async with BleakClient(second_sensor_mac_address) as bleSensorClient:
         
         print("\nConnecting...")
-        print("Third Sensor Connected!")
+        print("Second Sensor Connected!")
 
         # Request to omit the oldest samples of the sensor that is set by default and get only the latest sample
         # Defined in the Data Logger service  
@@ -116,6 +116,7 @@ async def main():
             number_samples += 1
 
     # Device will disconnect when the block exits.
+
 
 
 # Using asyncio.run() is important to ensure that the device disconnects on

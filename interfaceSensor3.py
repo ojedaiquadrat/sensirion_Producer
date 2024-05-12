@@ -35,6 +35,7 @@ scan_sensor_period = 10.0
 """
 def notification_handler(characteristic: BleakGATTCharacteristic, data: bytearray):
     global raw_sensor_dataframe
+    print(data) 
     raw_sensor_dataframe.clear()  #avoid the first the notification and read only the sampling data frame
     raw_sensor_dataframe.append(list(data))
 
