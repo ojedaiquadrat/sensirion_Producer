@@ -36,9 +36,12 @@ topic_replication = 3
 
 
 # Broker list creation
-first_broker = "192.168.1.128:9092"
-second_broker = "192.168.1.128:9093"
-third_broker = "192.168.1.128:9094"
+# first_broker = "192.168.1.128:9092"
+# second_broker = "192.168.1.128:9093"
+# third_broker = "192.168.1.128:9094"
+first_broker = "10.2.2.77:9092"
+second_broker = "10.2.2.77:9093"
+third_broker = "10.2.2.77:9094"
 kafka_broker_list = [first_broker, second_broker, third_broker]
 
 # Producer creation
