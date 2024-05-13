@@ -10,7 +10,8 @@ from time import sleep
 """Connections Attempt Variables"""
 max_retries = 5  # Change this to desired number of retries
 attempt = 0
-connected = False
+sensor_status = False
+connected = 0
 
 """ Object to store the sensor dataframe """
 raw_sensor_dataframe = []
@@ -160,16 +161,20 @@ async def read_sensor_data(bleSensorClient):
         )  # Simulate data reading (replace with actual code)
         await bleSensorClient.stop_notify(service_uuid_data_transfer)
 
+        global connected
         # getting data
-        co2_concentration = getCO2()
-        temperature_centigrades = getTemperature()
-        humidity_percentage = getHumidity()
+        if sensor_status == True:
+            co2_concentration = getCO2()
+            temperature_centigrades = getTemperature()
+            humidity_percentage = getHumidity()
+            connected = 1
 
         # formating data to tranfer through kafka
         s1_data = {
             "co2": co2_concentration,
             "tmp": temperature_centigrades,
             "hum": humidity_percentage,
+            "stat": connected,
         }
 
         # send data to kafka brokers
@@ -184,29 +189,48 @@ async def read_sensor_data(bleSensorClient):
         print(f"Co2 Concentration is:   {co2_concentration} ppm ")
         print(f"Temperture is:          {temperature_centigrades}  °C")
         print(f"Humidty Percentage is:  {humidity_percentage} %\n\n")
+        print(f"Sensirion-1 status: {connected}\n")
 
     except Exception as e:
         print(f"Error reading sensor data: {e}")
 
 
 async def connect_and_read_data():
-    global connected
+    global sensor_status
     for attempt in range(max_retries + 1):
         try:
             async with BleakClient(second_sensor_mac_address) as bleSensorClient:
                 print(f"Connection attempt {attempt}: {bleSensorClient.is_connected}")
-                connected = True
+                sensor_status = True
                 while bleSensorClient.is_connected:  # Loop until connection is lost
                     await read_sensor_data(bleSensorClient)
                     await asyncio.sleep(3)  # Adjustable delay
 
         except Exception as e:
+            ##added to send defaults values when the sensor is disconnected
+            co2_concentration = 0
+            temperature_centigrades = 0
+            humidity_percentage = 0
+            connected = 0
+            s1_data = {
+                "co2": co2_concentration,
+                "tmp": temperature_centigrades,
+                "hum": humidity_percentage,
+                "stat": connected,
+            }
+            producer.send(topic_name, value=s1_data)
+            producer.flush()
             print(f"Error connecting to nsensor (attempt {attempt+1}): {e}")
-            await asyncio.sleep(2)  # Wait before retrying
+            # visualizing data on the cmd
+            print(f"Co2 Concentration is:   {co2_concentration} ppm ")
+            print(f"Temperture is:          {temperature_centigrades}  °C")
+            print(f"Humidty Percentage is:  {humidity_percentage} %")
+            print(f"Sensirion-2 status: {connected}\n")
+            await asyncio.sleep(0.5)  # Wait before retrying
 
     if attempt == max_retries:
         print(f"Failed to connect to nsensor after {max_retries} retries.")
-        connected = False
+        sensor_status = False
 
 
 """Main Function"""
@@ -215,7 +239,7 @@ async def connect_and_read_data():
 async def main():
     reading_frequency = 5  # Adjust this to desired delay between readings
     while True:
-        if not connected:
+        if not sensor_status:
             await connect_and_read_data()
         # Add logic for program termination (e.g., using keyboard interrupt)
         else:
