@@ -175,6 +175,8 @@ async def read_sensor_data(bleSensorClient):
         producer.send(topic_name, value=s1_data)
         number_samples += 1
         print("Data read and sent successfully!")
+        # force all buffered messages to be sent to the Kafka broker immediately
+        producer.flush()
 
         # visualizing data on the cmd
         print(f"------------- Sample #{number_samples} -------------\n")
@@ -215,6 +217,8 @@ async def main():
         if not connected:
             await connect_and_read_data()
         # Add logic for program termination (e.g., using keyboard interrupt)
+        else:
+            producer.close()
 
 
 asyncio.run(main())
