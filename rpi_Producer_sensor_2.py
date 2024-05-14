@@ -40,9 +40,13 @@ topic_replication = 3
 # first_broker = "192.168.1.128:9092"
 # second_broker = "192.168.1.128:9093"
 # third_broker = "192.168.1.128:9094"
-first_broker = "10.2.2.77:9092"
-second_broker = "10.2.2.77:9093"
-third_broker = "10.2.2.77:9094"
+# first_broker = "10.2.2.77:9092"
+# second_broker = "10.2.2.77:9093"
+# third_broker = "10.2.2.77:9094"
+first_broker = "10.1.6.83:9092"
+second_broker = "10.1.6.83:9093"
+third_broker = "10.1.6.83:9094"
+a=3
 kafka_broker_list = [first_broker, second_broker, third_broker]
 
 # Producer creation
@@ -205,7 +209,6 @@ async def connect_and_read_data():
                 while bleSensorClient.is_connected:  # Loop until connection is lost
                     start_time = time.time()
                     await read_sensor_data(bleSensorClient)
-                    await asyncio.sleep(5)  # Adjustable delay
                     await asyncio.sleep(5)  # Adjustable delay
                     end_time = time.time()
                     producer_frequency= end_time -start_time
