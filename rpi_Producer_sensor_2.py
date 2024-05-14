@@ -4,7 +4,7 @@ from bleak.backends.characteristic import BleakGATTCharacteristic
 from kafka import *
 from kafka.admin import KafkaAdminClient, NewTopic
 import json
-from time import sleep
+import time 
 
 
 """Connections Attempt Variables"""
@@ -132,10 +132,12 @@ async def read_sensor_data(bleSensorClient):
     Replace the placeholder comment with the actual code to read data from
     your specific sensor's characteristics.
     """
-    print("Reading sensor data...")
-    print("\n******DATA INTAKING SENSIRION SCD41 CO₂ Sensor Demonstrator******\n")
+    
 
     try:
+        print("\n******DATA INTAKING SENSIRION SCD41 CO₂ Sensor Demonstrator******\n")
+        print("Reading sensor data...")
+
         # Replace this with the actual code to read data from the sensor
         # (e.g., characteristic reads)
 
@@ -153,12 +155,8 @@ async def read_sensor_data(bleSensorClient):
             f"\nChecking the number of requested samples that sensor is notifying: {logging_interval[0]}"
         )
         print("")
-        await bleSensorClient.start_notify(
-            service_uuid_data_transfer, notification_handler
-        )
-        await asyncio.sleep(
-            scan_sensor_period
-        )  # Simulate data reading (replace with actual code)
+        await bleSensorClient.start_notify(service_uuid_data_transfer, notification_handler)
+        await asyncio.sleep(scan_sensor_period)  # Simulate data reading (replace with actual code)
         await bleSensorClient.stop_notify(service_uuid_data_transfer)
 
         global connected
@@ -177,19 +175,21 @@ async def read_sensor_data(bleSensorClient):
             "stat": connected,
         }
 
-        # send data to kafka brokers
-        producer.send(topic_name, value=s1_data)
-        number_samples += 1
-        print("Data read and sent successfully!")
-        # force all buffered messages to be sent to the Kafka broker immediately
-        producer.flush()
-
         # visualizing data on the cmd
         print(f"------------- Sample #{number_samples} -------------\n")
         print(f"Co2 Concentration is:   {co2_concentration} ppm ")
         print(f"Temperture is:          {temperature_centigrades}  °C")
         print(f"Humidty Percentage is:  {humidity_percentage} %\n\n")
         print(f"Sensirion-1 status: {connected}\n")
+
+        # send data to kafka brokers
+        producer.send(topic_name, value=s1_data)
+        number_samples += 1
+        
+        # force all buffered messages to be sent to the Kafka broker immediately
+        producer.flush()
+        print("Data read and sent successfully!")
+
 
     except Exception as e:
         print(f"Error reading sensor data: {e}")
@@ -203,8 +203,14 @@ async def connect_and_read_data():
                 print(f"Connection attempt {attempt}: {bleSensorClient.is_connected}")
                 sensor_status = True
                 while bleSensorClient.is_connected:  # Loop until connection is lost
+                    start_time = time.time()
                     await read_sensor_data(bleSensorClient)
-                    await asyncio.sleep(3)  # Adjustable delay
+                    await asyncio.sleep(5)  # Adjustable delay
+                    await asyncio.sleep(5)  # Adjustable delay
+                    end_time = time.time()
+                    producer_frequency= end_time -start_time
+                    print("\nfrequency Producer: ", producer_frequency )
+                    
 
         except Exception as e:
             ##added to send defaults values when the sensor is disconnected
@@ -226,11 +232,11 @@ async def connect_and_read_data():
             print(f"Temperture is:          {temperature_centigrades}  °C")
             print(f"Humidty Percentage is:  {humidity_percentage} %")
             print(f"Sensirion-2 status: {connected}\n")
-            await asyncio.sleep(0.5)  # Wait before retrying
+            await asyncio.sleep(30)  # Wait before retrying
 
-    if attempt == max_retries:
-        print(f"Failed to connect to nsensor after {max_retries} retries.")
-        sensor_status = False
+        if attempt == max_retries:
+            print(f"Failed to connect to nsensor after {max_retries} retries.")
+            sensor_status = False
 
 
 """Main Function"""
