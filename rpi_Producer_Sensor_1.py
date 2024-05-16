@@ -5,6 +5,8 @@ from kafka import *
 from kafka.admin import KafkaAdminClient, NewTopic
 import json
 import time
+from standalone.simple_manipulator import predict
+import numpy
 
 """Connections Attempt Variables"""
 max_retries = 5  # Change this to desired number of retries
@@ -166,20 +168,26 @@ async def read_sensor_data(bleSensorClient):
             temperature_centigrades = getTemperature()
             humidity_percentage = getHumidity()
             connected = 1
+            tmp_validation = predict("temperature", temperature_centigrades)
+            tmp_validation_send = int(tmp_validation[0])
+            hum_validation = predict ("humidity", humidity_percentage)
+            hum_validation_send = int(hum_validation[0])
 
         # formating data to tranfer through kafka
         s1_data = {
             "co2": co2_concentration,
             "tmp": temperature_centigrades,
             "hum": humidity_percentage,
+            "tmpValid": tmp_validation_send,
+            "humValid": hum_validation_send,
             "stat": connected,
         }
 
          # visualizing data on the cmd
         print(f"------------- Samples -------------\n")
         print(f"Co2 Concentration is:   {co2_concentration} ppm ")
-        print(f"Temperture is:          {temperature_centigrades}  °C")
-        print(f"Humidty Percentage is:  {humidity_percentage} %")
+        print(f"Temperture is:          {temperature_centigrades}  °C   Valitadion status: {tmp_validation_send}")
+        print(f"Humidty Percentage is:  {humidity_percentage} %        Validations status: {hum_validation_send}")
         print(f"Sensirion-1 status: {connected}\n")
 
         # send data to kafka brokers
@@ -217,19 +225,26 @@ async def connect_and_read_data():
             temperature_centigrades = 0
             humidity_percentage = 0
             connected = 0
+            tmp_validation_send = -1 
+            hum_validation_send = -1
             s1_data = {
-                "co2": co2_concentration,
-                "tmp": temperature_centigrades,
-                "hum": humidity_percentage,
-                "stat": connected,
+            "co2": co2_concentration,
+            "tmp": temperature_centigrades,
+            "hum": humidity_percentage,
+            "tmpValid": tmp_validation_send,
+            "humValid": hum_validation_send,
+            "stat": connected,
             }
+
             producer.send(topic_name, value=s1_data)
             producer.flush()
             print(f"Error connecting to nsensor (attempt {attempt+1}): {e}")
             # visualizing data on the cmd
+             # visualizing data on the cmd
+            print(f"------------- Samples -------------\n")
             print(f"Co2 Concentration is:   {co2_concentration} ppm ")
-            print(f"Temperture is:          {temperature_centigrades}  °C")
-            print(f"Humidty Percentage is:  {humidity_percentage} %")
+            print(f"Temperture is:          {temperature_centigrades}  °C   Valitadion status: {tmp_validation_send}")
+            print(f"Humidty Percentage is:  {humidity_percentage} %        Validations status: {hum_validation_send}")
             print(f"Sensirion-1 status: {connected}\n")
             await asyncio.sleep(30)  # Wait before retrying
 
@@ -251,3 +266,5 @@ async def main():
 
 
 asyncio.run(main())
+
+

@@ -15,7 +15,7 @@ models = {}
 def predict(
     sensor_type,
     value,
-    models_location="/home/eduardo/anaconda3/envs/tempHumValidationEnv/src/models",
+    models_location="/home/ojedapi4/miniforge-pypy3/envs/scd41GadgetEnv/src/models",
 ):
     """
     Runs the anomaly detection on the loaded data

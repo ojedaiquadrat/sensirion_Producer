@@ -4,8 +4,9 @@ from bleak.backends.characteristic import BleakGATTCharacteristic
 from kafka import *
 from kafka.admin import KafkaAdminClient, NewTopic
 import json
-import time 
-
+import time
+from standalone.simple_manipulator import predict
+import numpy
 
 """Connections Attempt Variables"""
 max_retries = 5  # Change this to desired number of retries
@@ -46,7 +47,6 @@ topic_replication = 3
 first_broker = "10.1.6.83:9092"
 second_broker = "10.1.6.83:9093"
 third_broker = "10.1.6.83:9094"
-a=3
 kafka_broker_list = [first_broker, second_broker, third_broker]
 
 # Producer creation
@@ -137,9 +137,9 @@ async def read_sensor_data(bleSensorClient):
     your specific sensor's characteristics.
     """
     
-
     try:
-        print("\n******DATA INTAKING SENSIRION SCD41 CO₂ Sensor Demonstrator******\n")
+        
+        print("\n******DATA INTAKING SENSIRION SCD41  Sensor Demonstrator******\n")
         print("Reading sensor data...")
 
         # Replace this with the actual code to read data from the sensor
@@ -155,9 +155,7 @@ async def read_sensor_data(bleSensorClient):
         logging_interval = await bleSensorClient.read_gatt_char(
             service_uuid_requested_samples
         )
-        print(
-            f"\nChecking the number of requested samples that sensor is notifying: {logging_interval[0]}"
-        )
+        #print(f"\nChecking the number of requested samples that sensor is notifying: {logging_interval[0]}")
         print("")
         await bleSensorClient.start_notify(service_uuid_data_transfer, notification_handler)
         await asyncio.sleep(scan_sensor_period)  # Simulate data reading (replace with actual code)
@@ -170,30 +168,37 @@ async def read_sensor_data(bleSensorClient):
             temperature_centigrades = getTemperature()
             humidity_percentage = getHumidity()
             connected = 1
+            tmp_validation = predict("temperature", temperature_centigrades)
+            tmp_validation_send = int(tmp_validation[0])
+            hum_validation = predict ("humidity", humidity_percentage)
+            hum_validation_send = int(hum_validation[0])
 
         # formating data to tranfer through kafka
         s1_data = {
             "co2": co2_concentration,
             "tmp": temperature_centigrades,
             "hum": humidity_percentage,
+            "tmpValid": tmp_validation_send,
+            "humValid": hum_validation_send,
             "stat": connected,
         }
 
-        # visualizing data on the cmd
-        print(f"------------- Sample #{number_samples} -------------\n")
+         # visualizing data on the cmd
+        print(f"------------- Samples -------------\n")
         print(f"Co2 Concentration is:   {co2_concentration} ppm ")
-        print(f"Temperture is:          {temperature_centigrades}  °C")
-        print(f"Humidty Percentage is:  {humidity_percentage} %\n\n")
+        print(f"Temperture is:          {temperature_centigrades}  °C   Valitadion status: {tmp_validation_send}")
+        print(f"Humidty Percentage is:  {humidity_percentage} %        Validations status: {hum_validation_send}")
         print(f"Sensirion-1 status: {connected}\n")
 
         # send data to kafka brokers
         producer.send(topic_name, value=s1_data)
         number_samples += 1
-        
+       
         # force all buffered messages to be sent to the Kafka broker immediately
         producer.flush()
-        print("Data read and sent successfully!")
+        print("Data read and sent successfully!\n")
 
+       
 
     except Exception as e:
         print(f"Error reading sensor data: {e}")
@@ -213,7 +218,6 @@ async def connect_and_read_data():
                     end_time = time.time()
                     producer_frequency= end_time -start_time
                     print("\nfrequency Producer: ", producer_frequency )
-                    
 
         except Exception as e:
             ##added to send defaults values when the sensor is disconnected
@@ -221,30 +225,36 @@ async def connect_and_read_data():
             temperature_centigrades = 0
             humidity_percentage = 0
             connected = 0
+            tmp_validation_send = -1 
+            hum_validation_send = -1
             s1_data = {
-                "co2": co2_concentration,
-                "tmp": temperature_centigrades,
-                "hum": humidity_percentage,
-                "stat": connected,
+            "co2": co2_concentration,
+            "tmp": temperature_centigrades,
+            "hum": humidity_percentage,
+            "tmpValid": tmp_validation_send,
+            "humValid": hum_validation_send,
+            "stat": connected,
             }
+
             producer.send(topic_name, value=s1_data)
             producer.flush()
             print(f"Error connecting to nsensor (attempt {attempt+1}): {e}")
             # visualizing data on the cmd
+             # visualizing data on the cmd
+            print(f"------------- Samples -------------\n")
             print(f"Co2 Concentration is:   {co2_concentration} ppm ")
-            print(f"Temperture is:          {temperature_centigrades}  °C")
-            print(f"Humidty Percentage is:  {humidity_percentage} %")
-            print(f"Sensirion-2 status: {connected}\n")
+            print(f"Temperture is:          {temperature_centigrades}  °C   Valitadion status: {tmp_validation_send}")
+            print(f"Humidty Percentage is:  {humidity_percentage} %        Validations status: {hum_validation_send}")
+            print(f"Sensirion-1 status: {connected}\n")
             await asyncio.sleep(30)  # Wait before retrying
 
+    
         if attempt == max_retries:
-            print(f"Failed to connect to nsensor after {max_retries} retries.")
+            print(f"Failed to connect to Sensor-1 after {max_retries} retries.")
             sensor_status = False
 
 
 """Main Function"""
-
-
 async def main():
     reading_frequency = 5  # Adjust this to desired delay between readings
     while True:
