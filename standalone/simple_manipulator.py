@@ -43,14 +43,20 @@ def predict(
         return None
 
 
-# # benchmark temperature values
-# sensor_type = "temperature"
-# for sensor_value in range(10, 40, 1):
-#     prediction = predict(sensor_type, sensor_value)
-#     logger.info(f"type: {sensor_type} value: {sensor_value} prediction: {prediction}")
+# benchmark temperature values
+sensor_type = "temperature"
+for sensor_value in range(10, 40, 1):
+    prediction = predict(sensor_type, sensor_value)
+    logger.info(f"type: {sensor_type} value: {sensor_value} prediction: {prediction}")
 
-# # benchmark humidity values
-# sensor_type = "humidity"
-# for sensor_value in range(10, 80, 4):
-#     prediction = predict(sensor_type, sensor_value)
-#     logger.info(f"type: {sensor_type} value: {sensor_value} prediction: {prediction}")
+# benchmark humidity values
+sensor_type = "humidity"
+for sensor_value in range(10, 80, 4):
+    prediction = predict(sensor_type, sensor_value)
+    logger.info(f"type: {sensor_type} value: {sensor_value} prediction: {prediction}")
+
+# benchmark humidity values
+sensor_type = "co234"
+for sensor_value in range(400, 1000, 10):
+    prediction = predict(sensor_type, sensor_value)
+    logger.info(f"type: {sensor_type} value: {sensor_value} prediction: {prediction}")
