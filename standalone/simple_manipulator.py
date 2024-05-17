@@ -55,8 +55,8 @@ def predict(
 #     prediction = predict(sensor_type, sensor_value)
 #     logger.info(f"type: {sensor_type} value: {sensor_value} prediction: {prediction}")
 
-# benchmark humidity values
-sensor_type = "CO2"
-for sensor_value in range(400, 1000, 10):
-    prediction = predict(sensor_type, sensor_value)
-    logger.info(f"type: {sensor_type} value: {sensor_value} prediction: {prediction}")
+# # benchmark humidity values
+# sensor_type = "co2"
+# for sensor_value in range(400, 3000, 10):
+#     prediction = predict(sensor_type, sensor_value)
+#     logger.info(f"type: {sensor_type} value: {sensor_value} prediction: {prediction}")

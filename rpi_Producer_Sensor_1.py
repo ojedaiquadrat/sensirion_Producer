@@ -168,6 +168,8 @@ async def read_sensor_data(bleSensorClient):
             temperature_centigrades = getTemperature()
             humidity_percentage = getHumidity()
             connected = 1
+            co2_validation = predict("co2", co2_concentration)
+            co2_validation_send = int(co2_validation[0])
             tmp_validation = predict("temperature", temperature_centigrades)
             tmp_validation_send = int(tmp_validation[0])
             hum_validation = predict ("humidity", humidity_percentage)
@@ -178,6 +180,7 @@ async def read_sensor_data(bleSensorClient):
             "co2": co2_concentration,
             "tmp": temperature_centigrades,
             "hum": humidity_percentage,
+            "co2Valid": co2_validation_send,
             "tmpValid": tmp_validation_send,
             "humValid": hum_validation_send,
             "stat": connected,
@@ -185,7 +188,7 @@ async def read_sensor_data(bleSensorClient):
 
          # visualizing data on the cmd
         print(f"------------- Samples -------------\n")
-        print(f"Co2 Concentration is:   {co2_concentration} ppm ")
+        print(f"Co2 Concentration is:   {co2_concentration} ppm         Validation status: {co2_validation_send} ")
         print(f"Temperture is:          {temperature_centigrades}  °C   Valitadion status: {tmp_validation_send}")
         print(f"Humidty Percentage is:  {humidity_percentage} %        Validations status: {hum_validation_send}")
         print(f"Sensirion-1 status: {connected}\n")
@@ -225,12 +228,14 @@ async def connect_and_read_data():
             temperature_centigrades = 0
             humidity_percentage = 0
             connected = 0
+            co2_validation_send = -1
             tmp_validation_send = -1 
             hum_validation_send = -1
             s1_data = {
             "co2": co2_concentration,
             "tmp": temperature_centigrades,
             "hum": humidity_percentage,
+            "co2Valid": co2_validation_send,
             "tmpValid": tmp_validation_send,
             "humValid": hum_validation_send,
             "stat": connected,
@@ -242,7 +247,7 @@ async def connect_and_read_data():
             # visualizing data on the cmd
              # visualizing data on the cmd
             print(f"------------- Samples -------------\n")
-            print(f"Co2 Concentration is:   {co2_concentration} ppm ")
+            print(f"Co2 Concentration is:   {co2_concentration} ppm        Validation status: {co2_validation_send} ")
             print(f"Temperture is:          {temperature_centigrades}  °C   Valitadion status: {tmp_validation_send}")
             print(f"Humidty Percentage is:  {humidity_percentage} %        Validations status: {hum_validation_send}")
             print(f"Sensirion-1 status: {connected}\n")
