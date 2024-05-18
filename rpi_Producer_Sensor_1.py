@@ -217,7 +217,7 @@ async def connect_and_read_data():
                 while bleSensorClient.is_connected:  # Loop until connection is lost
                     start_time = time.time()
                     await read_sensor_data(bleSensorClient)
-                    await asyncio.sleep(5)  # Adjustable delay
+                    await asyncio.sleep(45)  # Adjustable delay
                     end_time = time.time()
                     producer_frequency= end_time -start_time
                     print("\nfrequency Producer: ", producer_frequency )
