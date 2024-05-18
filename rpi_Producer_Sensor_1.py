@@ -224,6 +224,7 @@ async def connect_and_read_data():
 
         except Exception as e:
             ##added to send defaults values when the sensor is disconnected
+            start_time = time.time()
             co2_concentration = 0
             temperature_centigrades = 0
             humidity_percentage = 0
@@ -252,6 +253,9 @@ async def connect_and_read_data():
             print(f"Humidty Percentage is:  {humidity_percentage} %        Validations status: {hum_validation_send}")
             print(f"Sensirion-1 status: {connected}\n")
             await asyncio.sleep(30)  # Wait before retrying
+            end_time = time.time()
+            exception_time = end_time -start_time
+            print(f"The error frequency is : {exception_time}")
 
     
         if attempt == max_retries:
